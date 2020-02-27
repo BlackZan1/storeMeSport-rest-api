@@ -18,26 +18,27 @@ app.use(multer);
 
 // import routes
 const productsRoute = require('./routes/products');
-
-//routes
-app.use('/api/products', productsRoute);
+const authRoute = require('./routes/auth');
 
 // Access config
-app.use((req, res, next) => {
+app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header(
         "Access-Control-Allow-Headers",
         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    )
+    );
 
-    if(req.method === "OPTIONS") {
+    if (req.method === "OPTIONS") {
         res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-        return res.status(200).json()
+        return res.status(200).json({});
     }
 
     next();
-    // asdasdasd
-})
+});
+
+//routes
+app.use('/api/products', productsRoute);
+app.use('/api/auth', authRoute);
 
 // handle requests 
 app.use(function (req, res, next) {

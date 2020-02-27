@@ -26,25 +26,24 @@ const mimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 router.get('/', (req, res) => {
     console.log('GET')
 
-    Product.find({})
+    Product.find({}).limit(10)
+    .select('id name price description category productImagePath')
     .exec()
     .then(result => {
-        console.log(result);
 
         const response = {
             count: result.length,
-            products: result.map(p => {
-                return {
-                    name: p.name,
-                    price: p.price,
-                    description: p.description,
-                    productImage: p.productImage,
-                    id: p._id,
-                    request: {
-                        type: "GET"
-                    }
+            products: result.map(p => ({
+                id: p._id,
+                name: p.name,
+                description: p.description,
+                price: p.price,
+                category: p.category,
+                productImagePath: p.productImagePath,
+                request: {
+                    type: "GET"
                 }
-            })
+            }))
         }
 
         if(result.length) {
@@ -57,6 +56,7 @@ router.get('/', (req, res) => {
     })
     .catch(err => {
         console.log(err);
+
         res.status(500).json({
             error: err
         })
@@ -71,10 +71,10 @@ router.post('/',/* 1. */ (req, res) => { // 1. upload.single('productImage'),
     const product = new Product({
         name: req.body.name,
         price: req.body.price,
-        // productImage: req.file.path,
         description: req.body.description,
         madeIn: req.body.madeIn,
-        season: req.body.season
+        season: req.body.season,
+        category: req.body.category
     })
 
     saveImage(product, req.file);
@@ -87,13 +87,7 @@ router.post('/',/* 1. */ (req, res) => { // 1. upload.single('productImage'),
         res.status(201).json({
             message: 'Success created',
             createdProduct: {
-                name: result.name,
-                price: result.price,
-                productImage: result.productImage,
-                productImageType: result.productImageType,
-                description: result.description,
-                madeIn: result.madeIn,
-                season: result.season,
+                ...result,
                 request: {
                     type: "POST"
                 }
@@ -112,13 +106,23 @@ router.post('/',/* 1. */ (req, res) => { // 1. upload.single('productImage'),
 // GET Product by Id route
 router.get('/:id', (req, res) => {
     Product.findById(req.params.id)
+    .select()
     .exec()
     .then(result => {
         console.log(result);
 
         if(result) {
             res.status(200).json({
-                product: result,
+                product: {
+                    id: result._id,
+                    name: result.name,
+                    price: result.price,
+                    description: result.description,
+                    madeIn: result.madeIn,
+                    season: result.season,
+                    category: result.category,
+                    productImagePath: result.productImagePath
+                },
                 request: {
                     type: "GET"
                 }
@@ -140,7 +144,8 @@ router.get('/:id', (req, res) => {
 
 // DELETE route
 router.delete('/:id', (req, res) => {
-    Product.findByIdAndRemove(req.params.id)
+    Product.findById(req.params.id)
+    .remove()
     .exec()
     .then(result => {
         console.log(result);
@@ -161,13 +166,48 @@ router.delete('/:id', (req, res) => {
     })
 })
 
+// GET product by name
+router.get('/search/:name', (req, res) => {
+    let searchedOptions = {};
+
+    if(req.params.name && req.params.name !== '') searchedOptions.name = new RegExp(req.params.name, 'i');
+
+    Product.find(searchedOptions)
+    .exec()
+    .then(result => {
+        console.log(result)
+
+        const response = {
+            count: result.length,
+            products: result.map(p => ({
+                name: p.name,
+                description: p.description,
+                id: p._id,
+                price: p.price,
+                category: p.category,
+                productImagePath: p.productImagePath,
+                request: {
+                    type: 'GET'
+                }
+            }))
+        }
+
+        res.status(200).json(response);
+    })
+    .catch(err => {
+        console.log(err);
+
+        res.status(500).json({
+            error: err
+        })
+    })
+})
+
 function saveImage(product, cover = null) {
     if(!cover) return;
 
-    const image = cover;
-    if(image && mimeTypes.includes(image.mimetype)) {
-        product.productImage = image.buffer;
-        product.productImageType = image.mimetype;
+    if(cover && mimeTypes.includes(cover.mimetype)) {
+        product.productImagePath = `data:${cover.mimetype};charset=utf-8;base64,${cover.buffer.toString('base64')}`;
     }
 }
 

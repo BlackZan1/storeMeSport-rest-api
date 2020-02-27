@@ -13,6 +13,10 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    category: {
+        type: String,
+        required: true
+    },
     madeIn: {
         type: String,
         required: true
@@ -21,23 +25,9 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    // productImage: {
-    //     type: String,
-    //     required: true
-    // }
-    productImage: {
-        type: Buffer,
-        required: true
-    },
-    productImageType: {
+    productImagePath: {
         type: String,
         required: true
-    }
-})
-
-productSchema.virtual('productImagePath').get(function() {
-    if(this.productImage && this.productImageType) {
-        return `data:${this.productImageType};charset=utf-8;base64,${this.productImage.toString('base64')}`
     }
 })
 
