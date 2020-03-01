@@ -70,7 +70,11 @@ router.post('/login', [
 
     // Find user in DB
     const { email, password } = req.body;
+    console.log(email)
+
     const user = await User.findOne({ email });
+
+    console.log(user)
 
     if(!user) return res.json({ error: true, message: 'Email is not found' }); // Error
 

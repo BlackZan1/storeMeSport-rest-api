@@ -19,6 +19,7 @@ app.use(multer);
 // import routes
 const productsRoute = require('./routes/products');
 const authRoute = require('./routes/auth');
+const userRoute = require('./routes/user');
 
 // Access config
 app.use(function(req, res, next) {
@@ -39,6 +40,7 @@ app.use(function(req, res, next) {
 //routes
 app.use('/api/products', productsRoute);
 app.use('/api/auth', authRoute);
+app.use('/api/user', userRoute);
 
 // handle requests 
 app.use(function (req, res, next) {
