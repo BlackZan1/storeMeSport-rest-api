@@ -1,14 +1,19 @@
+if(process.env.NODE_ENV !== 'production' ) {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const verify = require('../middlewares/token_verify');
 
 // Get user by Id
-router.get('/:id', (req, res) => {
-    User.findById( req.params.id )
+router.get('/me', verify, (req, res) => {
+    const { userId } = req.data;
+
+    User.findById( userId )
     .exec()
     .then(result => {
-        console.log(result)
-
         if(result) {
             return res.status(200).json({
                 user: {
@@ -47,9 +52,7 @@ router.get('/', async (req, res) => {
                 count: result.length,
                 users: result.map(u => ({
                     name: u.name,
-                    email: u.email,
-                    balance: u.balance,
-                    purchases: u.purchases
+                    email: u.email
                 })),
                 request: {
                     type: 'GET'

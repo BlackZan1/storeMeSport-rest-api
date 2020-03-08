@@ -50,7 +50,7 @@ router.post('/signUp', [
     .catch(err => {
         console.log(err)
 
-        res.status(500).json({ message: 'Error on server' });
+        res.status(500).json({ message: err });
     })
 })
 
@@ -87,13 +87,15 @@ router.post('/login', [
         const token = jwt.sign(
             { userId: user.id },
             process.env.jwtSecret,
-            { expiresIn: '1h' }
+            { expiresIn: '1h' },
         )
+
+        console.log(jwt.verify(token, process.env.jwtSecret))
 
         res.json({ token, userId: user.id });
     }
     catch(err) {
-        res.status(500).json({ message: 'Error with login' })
+        res.status(500).json({ message: err })
     }
 })
 
